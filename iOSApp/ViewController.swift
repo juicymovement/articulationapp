@@ -2,11 +2,14 @@ import UIKit
 import WatchConnectivity
 
 class ViewController: UIViewController, WCSessionDelegate {
+    static let shared = ViewController()  // Singleton instance
     var audioBuffer: [(Date, Data)] = []
+    var bufferCleanupTimer: Timer?
     
     override func viewDidLoad() {
         super.viewDidLoad()
         setupWatchConnectivity()
+        setupBufferCleanupTimer()
     }
     
     func setupWatchConnectivity() {
@@ -25,8 +28,16 @@ class ViewController: UIViewController, WCSessionDelegate {
         audioBuffer.append((currentTime, newData))
         
         // Remove old data if buffer exceeds length
-        while audioBuffer.count > bufferLength {
+        while audioBuffer.count > 5 {
             audioBuffer.removeFirst()
         }
+    }
+    
+    func setupBufferCleanupTimer() {
+        bufferCleanupTimer = Timer.scheduledTimer(timeInterval: 300, target: self, selector: #selector(clearBuffer), userInfo: nil, repeats: true)
+    }
+    
+    @objc func clearBuffer() {
+        audioBuffer.removeAll()
     }
 }
